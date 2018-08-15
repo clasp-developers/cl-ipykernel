@@ -1,4 +1,4 @@
-(in-package #:cl-jupyter-widgets)
+(in-package #:cl-ipykernel)
 
 (defmacro log-error (fmt &rest args)
   `(format t ,fmt ,@args))

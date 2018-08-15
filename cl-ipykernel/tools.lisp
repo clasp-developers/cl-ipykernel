@@ -1,5 +1,5 @@
 
-(in-package #:cl-jupyter-widgets)
+(in-package #:cl-ipykernel)
 
 (defvar *debug-cl-jupyter-widgets* nil)
 

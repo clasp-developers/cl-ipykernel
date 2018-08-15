@@ -10,7 +10,7 @@
   :components (
                (:file "packages")
                (:module ikernel
-                :pathname "ikernel"
+                :pathname "comm"
                 :serial t
                 :components ((:file "manager")
                              (:file "comm")))))
