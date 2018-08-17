@@ -33,6 +33,7 @@
 		  (make-instance 'comm :target-name target-name)
 		  (make-instance 'comm))))
     (cl-jupyter:logg 2 "comm.__init__  *kernel* --> ~s  (kernel comm) -> ~s~%" cl-jupyter:*kernel* (kernel comm))
+    (cl-jupyter:logg 2 "comm.__init__  (primary comm) -> ~s~%" (primary comm))
     (when (kernel comm)
       (if (primary comm)
 	  (open comm :data data :metadata metadata :buffers buffers)
@@ -48,25 +49,39 @@
   (cl-jupyter:logg 2 "msg-type -> ~a~%" msg-type)
   (cl-jupyter:logg 2 "metadata -> ~a~%" metadata)
   (cl-jupyter:logg 2 "(message-header cl-jupyter::*parent-msg* -> ~a~%"
-	      (and cl-jupyter:*parent-msg*
-		   (myjson::encode-json-to-string (cl-jupyter::message-header cl-jupyter::*parent-msg*))))
+		   (and cl-jupyter:*parent-msg*
+			(myjson::encode-json-to-string (cl-jupyter::message-header cl-jupyter::*parent-msg*))))
   (cl-jupyter:logg 2 "ident/topic -> ~a~%" (topic self))
   (cl-jupyter:logg 2 "++++++++++++++ contents >>>>>>>>>~%")
   (let ((cleaned-json (json-clean (list* (cons "data" data)
 					 (cons "comm_id"  (comm-id self))
 					 keys))))
     (cl-jupyter:logg 2 "~a" (with-output-to-string (sout)
-		       (print-as-python cleaned-json sout :indent 4)))
+						   (print-as-python cleaned-json sout :indent 4)))
     (cl-jupyter:logg 2 "   session -> ~a~%" (cl-jupyter::kernel-session (kernel self)))
-    (session-send (cl-jupyter::kernel-session (kernel self))
-		  (cl-jupyter::kernel-iopub (kernel self))
-		  msg-type
-		  :content cleaned-json
-		  :metadata (json-clean metadata)
-		  :parent cl-jupyter::*parent-msg*
-		  :ident (topic self)
-		  :buffers buffers)
-    (cl-jupyter:logg 2 "   real-msg -> CAN I GET A REAL MESSAGE FROM SESSION-SEND???~%")))
+    (let* ((kernel (kernel self))
+	   (kernel-session (cl-jupyter:kernel-session kernel))
+	   (_ (cl-jupyter:logg 2 "(kernel-session (kernel-session kernel) ~s)~%" kernel-session))
+	   (kernel-iopub (cl-jupyter:kernel-iopub kernel))
+	   (_ (cl-jupyter:logg 2 "(kernel-iopub (kernel-iopub kernel) ~s)~%" kernel-iopub))
+	   (clean-metadata (json-clean metadata))
+	   (_ (cl-jupyter:logg 2 "(clean-metadata (json-clean metadata) ~s)~%" clean-metadata))
+	   (topic (topic self))
+	   (_ (cl-jupyter:logg 2 "(topic (topic self))) ~s)~%" topic))
+	   )
+      (cl-jupyter:logg 2 "cl-jupyter::*parent-msg* ~s~%" cl-jupyter::*parent-msg*)
+      (cl-jupyter:logg 2 "msg-type ~s~%" msg-type)
+      (cl-jupyter:logg 2 "cleaned-json ~s~%" cleaned-json)
+      (cl-jupyter:logg 2 "buffers ~s~%" buffers)
+      (session.send kernel-session
+		    kernel-iopub
+		    msg-type
+		    :content cleaned-json
+		    :metadata clean-metadata
+		    :parent cl-jupyter::*parent-msg*
+		    :ident topic
+		    :buffers buffers)
+      (cl-jupyter:logg 2 "   real-msg -> CAN I GET A REAL MESSAGE FROM SESSION.SEND???~%"))))
 
 
 (defmethod open ((self comm) &key (data (%open-data self)) metadata (buffers #()))
@@ -77,19 +92,42 @@
     (cl-jupyter:logg 2 "comm::open  About to register with comm-manager comm: ~a~%" self)
     (register-comm comm-manager self)
     (or (slot-boundp self 'target-name) (error "The slot target-name is not bound in the comm ~a" self))
-    (handler-case
-	(progn
-	  (%publish-msg self "comm_open"
-			:target-name (target-name self)
-			:target-module (target-module self)
-			:data data
-			:metadata metadata
-			:buffers buffers
-			:keys (list (cons "target_name" (target-name self))
-				    (cons "target_module" (target-module self))))
-	  (setf (%closed self) nil))
-      (error (err)
-	(unregister-comm comm-manager self)))))
+    (let ((msg "In comm open"))
+      (handler-case
+	  (handler-bind
+	      ((simple-warning
+		#'(lambda (wrn)
+		    (format *error-output* "~&~a ~A: ~%" msg (class-name (class-of wrn)))
+		    (apply (function format) *error-output*
+			   (simple-condition-format-control   wrn)
+			   (simple-condition-format-arguments wrn))
+		    (format *error-output* "~&")
+		    (muffle-warning)))
+	       (warning
+		#'(lambda (wrn)
+		    (format *error-output* "~&~a ~A: ~%  ~A~%"
+			    msg (class-name (class-of wrn)) wrn)
+		    (muffle-warning)))
+	       (serious-condition
+		#'(lambda (err)
+		    (format t "!!!!! A serious condition was encountered in with-error-handling - check log~%")
+		    (finish-output)
+		    (cl-jupyter:logg 0 "~a~%" msg)
+		    (cl-jupyter:logg 0 "An error occurred of type ~a~%" (class-name (class-of err)))
+		    ;;		   (cl-jupyter:logg 0 "~a~%" err)
+		    (cl-jupyter:logg 0 "~a~%" (with-output-to-string (sout) (trivial-backtrace:print-backtrace-to-stream sout))))))
+	    (progn
+	      (%publish-msg self "comm_open"
+			    :target-name (target-name self)
+			    :target-module (target-module self)
+			    :data data
+			    :metadata metadata
+			    :buffers buffers
+			    :keys (list (cons "target_name" (target-name self))
+					(cons "target_module" (target-module self))))
+	      (setf (%closed self) nil)))
+	(error (err)
+	       (unregister-comm comm-manager self))))))
 
 (defmethod close ((self comm) &key data metadata (buffers #()))
   (check-type buffers array)

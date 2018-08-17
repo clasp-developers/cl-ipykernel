@@ -9,6 +9,7 @@
   :pathname "cl-ipykernel"
   :components (
                (:file "packages")
+	       (:file "tools")
                (:module ikernel
                 :pathname "comm"
                 :serial t

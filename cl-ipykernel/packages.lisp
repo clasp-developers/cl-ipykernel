@@ -3,6 +3,12 @@
   (:use #:cl)
   (:shadow #:open #:close)
   (:export
+   #:session.send
+   #:extract-message-content
+   #:with-error-handling
+   #:json-clean
+   #:print-as-python
+   #:as-python
    #:comm
    #:open
    #:close
