@@ -48,9 +48,9 @@
   (cl-jupyter:logg 2 "Comm._publish_msg (COMMON-LISP)  -+-+-+-+-+-+-+-+-+-+~%")
   (cl-jupyter:logg 2 "msg-type -> ~a~%" msg-type)
   (cl-jupyter:logg 2 "metadata -> ~a~%" metadata)
-  (cl-jupyter:logg 2 "(message-header cl-jupyter::*parent-msg* -> ~a~%"
+  (cl-jupyter:logg 2 "(message-header cl-jupyter:*parent-msg* -> ~a~%"
 		   (and cl-jupyter:*parent-msg*
-			(myjson::encode-json-to-string (cl-jupyter::message-header cl-jupyter::*parent-msg*))))
+			(myjson::encode-json-to-string (cl-jupyter:message-header cl-jupyter:*parent-msg*))))
   (cl-jupyter:logg 2 "ident/topic -> ~a~%" (topic self))
   (cl-jupyter:logg 2 "++++++++++++++ contents >>>>>>>>>~%")
   (let ((cleaned-json (json-clean (list* (cons "data" data)
@@ -58,7 +58,7 @@
 					 keys))))
     (cl-jupyter:logg 2 "~a" (with-output-to-string (sout)
 						   (print-as-python cleaned-json sout :indent 4)))
-    (cl-jupyter:logg 2 "   session -> ~a~%" (cl-jupyter::kernel-session (kernel self)))
+    (cl-jupyter:logg 2 "   session -> ~a~%" (cl-jupyter:kernel-session (kernel self)))
     (let* ((kernel (kernel self))
 	   (kernel-session (cl-jupyter:kernel-session kernel))
 	   (_ (cl-jupyter:logg 2 "(kernel-session (kernel-session kernel) ~s)~%" kernel-session))
@@ -69,7 +69,7 @@
 	   (topic (topic self))
 	   (_ (cl-jupyter:logg 2 "(topic (topic self))) ~s)~%" topic))
 	   )
-      (cl-jupyter:logg 2 "cl-jupyter::*parent-msg* ~s~%" cl-jupyter::*parent-msg*)
+      (cl-jupyter:logg 2 "cl-jupyter:*parent-msg* ~s~%" cl-jupyter:*parent-msg*)
       (cl-jupyter:logg 2 "msg-type ~s~%" msg-type)
       (cl-jupyter:logg 2 "cleaned-json ~s~%" cleaned-json)
       (cl-jupyter:logg 2 "buffers ~s~%" buffers)
@@ -78,7 +78,7 @@
 		    msg-type
 		    :content cleaned-json
 		    :metadata clean-metadata
-		    :parent cl-jupyter::*parent-msg*
+		    :parent cl-jupyter:*parent-msg*
 		    :ident topic
 		    :buffers buffers)
       (cl-jupyter:logg 2 "   real-msg -> CAN I GET A REAL MESSAGE FROM SESSION.SEND???~%"))))
@@ -172,7 +172,7 @@
   (cl-jupyter:logg 2 "comm-id -> ~a~%" (comm-id self))
   (cl-jupyter:logg 2 "msg -> ~a~%" msg);;(as-python msg))
   (if (%msg-callback self)
-      (let ((shell (cl-jupyter::kernel-shell (kernel self))))
+      (let ((shell (cl-jupyter:kernel-shell (kernel self))))
 	(cl-jupyter:logg 2 "About to trigger pre_execute skipping for now - for shell: ~a~%" shell)
 	#+(or)(when shell (trigger (events shell) "pre_execute"))
 	(cl-jupyter:logg 2 "About to funcall (%msg-callback self) -> ~a~%" (%msg-callback self))

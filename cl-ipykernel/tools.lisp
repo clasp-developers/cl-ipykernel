@@ -74,7 +74,7 @@
     (cl-jupyter:logg 2 "          content -> ~s~%" content)
     (cl-jupyter:logg 2 "           parent -> ~s~%" parent)
     (cl-jupyter:logg 2 "           (message-header parent) -> ~s~%" (cl-jupyter:message-header parent))
-    (cl-jupyter:logg 2 "                  (header-msg-type (message-header parent)) -> ~s~%" (cl-jupyter::header-msg-type (cl-jupyter::message-header parent)))
+    (cl-jupyter:logg 2 "                  (header-msg-type (message-header parent)) -> ~s~%" (cl-jupyter:header-msg-type (cl-jupyter:message-header parent)))
     (cl-jupyter:logg 2 "            ident -> ~s~%" ident)
     (cl-jupyter:logg 2 " (length buffers) -> ~s~%" (length buffers))
     (cl-jupyter:logg 2 "            track -> ~s~%" track)
@@ -82,15 +82,15 @@
     (cl-jupyter:logg 2 "         metadata -> ~s~%" metadata))
   (let ((track (streamp stream))
         msg msg-type)
-    (if (typep msg-or-type '(or cl-jupyter::message list))
+    (if (typep msg-or-type '(or cl-jupyter:message list))
         (setf msg msg-or-type
               buffers (cond
 		       (buffers buffers)
-		       ((typep msg-or-type cl-jupyter:message)
+		       ((typep msg-or-type 'cl-jupyter:message)
 			(cl-jupyter:message-buffers msg-or-type))
 		       (t (error "How do I get buffers out of the object ~s" msg-or-type)))
-              msg-type (cl-jupyter::header-msg-type (cl-jupyter:message-header parent)))
-      (setf msg (cl-jupyter::make-message parent msg-or-type metadata content buffers)
+              msg-type (cl-jupyter:header-msg-type (cl-jupyter:message-header parent)))
+      (setf msg (cl-jupyter:make-message parent msg-or-type metadata content buffers)
 	    msg-type msg-or-type)
       )
     (progn
@@ -101,10 +101,10 @@
     ;; ensure that buffers support memoryview buffer protocol
     (cl-jupyter:logg 2 "session.send ident -> ~s~%" ident)
     (prog1
-        (let ((socket (cl-jupyter::iopub-socket stream)))
+        (let ()
           (cl-jupyter:logg 2 "About to do message-send msg=|~s|~%" msg)
-          (cl-jupyter::message-send socket msg :identities
-				    (list (babel:string-to-octets ident)) :key (cl-jupyter::kernel-key cl-jupyter::*shell*)))
+          (cl-jupyter:message-send stream msg :identities
+				    (list (babel:string-to-octets ident)) :key (cl-jupyter:kernel-key cl-jupyter:*shell*)))
       (cl-jupyter:logg 2 "Done with message-send~%"))))
 
 
