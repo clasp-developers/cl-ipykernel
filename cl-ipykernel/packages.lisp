@@ -2,6 +2,7 @@
 (defpackage #:cl-ipykernel
   (:use #:cl)
   (:shadow #:open #:close)
+  (:import-from :fredokun-utilities #:[] #:[]-contains)
   (:export
    #:session.send
    #:extract-message-content

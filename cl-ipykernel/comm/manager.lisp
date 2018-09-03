@@ -54,8 +54,8 @@
   (cl-jupyter:logg 2 "In manager.lisp comm-open - msg -> ~s~%" msg)
   (let ((content (extract-message-content msg)))
     (cl-jupyter:logg 2 "In manager.lisp content -> ~s~%" content)
-    (let* ((comm-id (fredo-utils:[] content "comm_id"))
-	   (target-name (fredo-utils:[] content "target_name"))
+    (let* ((comm-id ([] content "comm_id"))
+	   (target-name ([] content "target_name"))
 	   (func (gethash target-name (targets self)))
 	   (comm (progn
 		   (cl-jupyter:logg 2 "[comm-open]   About to make-instance 'comm :comm-id ~a~%" comm-id)
@@ -77,7 +77,7 @@
 (defmethod comm-msg ((self comm-manager) stream identities msg)
   (cl-jupyter:logg 2 "[comm-msg] msg -> ~a~%" msg)
   (let* ((content (extract-message-content msg))
-	 (comm-id (fredo-utils:[] content "comm_id"))
+	 (comm-id ([] content "comm_id"))
 	 (comm (get-comm self comm-id)))
     (cl-jupyter:logg 2 "Message for comm_id ~a  -> comm: ~a~%" comm-id comm)
     (cl-jupyter:logg 2 "     *parent-msg* -> ~s~%" cl-jupyter:*parent-msg*)
@@ -88,7 +88,7 @@
 
 (defmethod comm-close ((self comm-manager) stream identities msg)
   (let* ((content (extract-message-content msg))
-	 (comm-id (fredo-utils:[] content "comm_id"))
+	 (comm-id ([] content "comm_id"))
 	 (comm (get-comm self comm-id)))
     (unless comm (return-from comm-close nil))
     (remhash comm-id (comms self))
