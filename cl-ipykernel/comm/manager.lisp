@@ -1,8 +1,5 @@
 (in-package #:cl-ipykernel)
 
-(defmacro log-error (fmt &rest args)
-  `(format t ,fmt ,@args))
-
 (defvar *kernel-comm-managers* (make-hash-table)
   "Map kernels to comm-managers")
 
@@ -68,11 +65,11 @@
 	  (with-error-handling "In comm-open"
 	      (funcall func comm msg)
 	      (return-from comm-open))
-	  (log-error "No such comm target registered: ~a" target-name))
+	  (cl-jupyter:logg-backtrace "No such comm target registered: ~a" target-name))
       (handler-case
 	  (close comm)
 	(error (err)
-	  (log-error "Could not close comm during comm-open failure cleanup. The comm may not have been opened yet err: ~a" err))))))
+	  (cl-jupyter:logg-backtrace "Could not close comm during comm-open failure cleanup. The comm may not have been opened yet err: ~a" err))))))
 
 (defmethod comm-msg ((self comm-manager) stream identities msg)
   (cl-jupyter:logg 2 "[comm-msg] msg -> ~a~%" msg)
